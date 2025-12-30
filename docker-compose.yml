@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  learnai-app:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./knowledge_base:/app/knowledge_base
+      - ./chroma_db:/app/chroma_db
+      - ./models:/app/models
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Add monitoring service
+  monitoring:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
+volumes:
+  grafana-storage:
